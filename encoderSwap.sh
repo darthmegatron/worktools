@@ -6,6 +6,9 @@
 channels="230.0.187.68 230.0.187.18 230.0.187.70 230.0.187.16 230.0.187.69 230.0.187.17"
 
 message="Encoders swapped and flowclient restarted for"
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+NOCOLOR="\033[0m"
 
 ############################################################################
 # Print command usage to the terminal
@@ -29,25 +32,40 @@ function usage () {
 #	*.conf
 ############################################################################
 function swap () {
+	confs=()
 	for conf in $@; do
+		confs+=($conf)
 		list=$(grep -e "RECEIVE_[AP]" $conf)
 		for line in $list; do
 			if [ ${line::1} = "#" ]; then
 				sed -i "s/$line/${line:1}/g" $conf
 			else
 				sed -i "s/\b$line\b/#$line/g" $conf
-			fi; done; done
+			fi;
+		done; 
+	done
+	restart_fc ${confs[@]}
+}
+
+function check_active_encoder () {
+	active=($(grep -wB 1 "^RECEIVE_ADDRESS" $@ | grep Encoder | sed "s/.*#//"));
+	echo ${active[0]} and ${active[1]} are active >&2
+	echo ${active[@]}
 }
 
 function find_conf () {
-	if [ $1 == "13" ]; then
-		conf=$(grep "Encoders 1 & 2" ./ingest-*.conf | sed "s/:.*//" | sed "s/.\///")
-		echo $conf
-	elif [ $1 == "24" ]; then
-		conf=$(grep "Encoders 3 & 4" ./ingest-*.conf | sed "s/:.*//" | sed "s/.\///")
-		echo $conf
+	confs=$(grep "Encoder[13]" ./ingest-*.conf | sed "s/:.*//" | sed "s/.\///")
+	active=($(check_active_encoder ${confs[@]}))
+
+	if [[ $1 == "13" && ${active[0]} != "Encoder1" && ${active[1]} != "Encoder3" ]]; then
+		echo -e ${GREEN}"Switching to encoders 1 and 3\n"${NOCOLOR} >&2
+		swap $confs
+	elif [[ $1 == "24" && ${active[0]} != "Encoder2" && ${active[1]} != "Encoder4" ]]; then
+		echo -e ${GREEN}"Switching to encoders 2 and 4\n"${NOCOLOR} >&2
+		swap $confs
+	else
+		echo -e ${RED}"No changes made\n"${NOCOLOR}
 	fi
-	swap $conf
 }
 
 ############################################################################
@@ -58,11 +76,13 @@ function find_conf () {
 #	*.conf || list
 ############################################################################
 function restart_fc () {
-#	cd ~ltn
-	for conf in $@; do
-		echo "sudo -u ltn ./scripts_current/fcctl ./scripts_current/$conf restart";
-	done
-	echo -e "\n$message $@"
+	if [ $# -gt 0 ]; then
+#		cd ~ltn
+		for conf in $@; do
+			echo "sudo -u ltn ./scripts_current/fcctl ./scripts_current/$conf restart";
+		done
+		echo -e "\n$message $@"
+	fi
 }
 
 ## Check command
@@ -72,8 +92,12 @@ fi
 
 case $@ in
 	-h | --help)
-	 usage
-	 ;;
+		usage
+	 	;;
+
+	--test)
+		find_conf 13
+		;;
 
 	--auto)
 		confs=$(for channel in $channels; do grep SEND_GROUP=$channel ./*.conf | sed "s/:.*//" | sed "s/.\///"; done)
@@ -82,15 +106,16 @@ case $@ in
 		;;
 
 	-13)
-		restart_fc $(find_conf 13)
+		find_conf 13
 		;;
 
 	-24)
-		restart_fc $(find_conf 24)
+		find_conf 24
 		;;
 
 	$1)
 		swap $1
 		echo -e "\n$message $1"
 		;;
+	
 esac
