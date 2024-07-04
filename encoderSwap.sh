@@ -93,4 +93,4 @@ case $@ in
 		swap $1
 		echo -e "\n$message $1"
 		;;
-esac 
+esac
