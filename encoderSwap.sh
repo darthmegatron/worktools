@@ -60,12 +60,20 @@ function find_conf () {
 	confs=$(grep "Encoder[13]" ./ingest-*.conf | sed "s/:.*//" | sed "s/.\///")
 	active=($(check_active_encoder ${confs[@]}))
 
-	if [[ $1 == "13" && ${active[0]} != "Encoder1" && ${active[1]} != "Encoder3" ]]; then
-		echo -e ${GREEN}"Switching to encoders 1 and 3\n"${NOCOLOR} >&2
-		swap $confs
-	elif [[ $1 == "24" && ${active[0]} != "Encoder2" && ${active[1]} != "Encoder4" ]]; then
-		echo -e ${GREEN}"Switching to encoders 2 and 4\n"${NOCOLOR} >&2
-		swap $confs
+	if [ $1 == "13" ]; then
+		if ! [[ ${active[@]} == "Encoder1 Encoder3" || ${active[@]} == "Encoder3 Encoder1" ]]; then
+			echo -e ${GREEN}"Switching to encoders 1 and 3\n"${NOCOLOR} >&2
+			swap $confs
+		else
+			echo -e ${RED}"No changes made\n"${NOCOLOR}
+		fi
+	elif [ $1 == "24" ]; then
+		if ! [[ ${active[@]} == "Encoder2 Encoder4" || ${active[@]} == "Encoder4 Encoder2" ]]; then
+			echo -e ${GREEN}"Switching to encoders 2 and 4\n"${NOCOLOR} >&2
+			swap $confs
+		else
+			echo -e ${RED}"No changes made\n"${NOCOLOR}
+		fi
 	else
 		echo -e ${RED}"No changes made\n"${NOCOLOR}
 	fi
