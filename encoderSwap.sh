@@ -90,7 +90,7 @@ function restart_fc () {
 	if [ $# -gt 0 ]; then
 #		cd ~ltn
 		for conf in $@; do
-			echo "sudo -u ltn ./scripts_current/fcctl ./scripts_current/$conf restart";
+			"sudo -u ltn ./scripts_current/fcctl ./scripts_current/$conf restart";
 		done
 		echo -e "\n$message $@"
 	fi
