@@ -9,6 +9,7 @@ message="Encoders swapped and flowclient restarted for"
 RED="\033[1;31m"
 GREEN="\033[1;32m"
 NOCOLOR="\033[0m"
+BOLD="\033[1m"
 
 ############################################################################
 # Print command usage to the terminal
@@ -16,11 +17,9 @@ NOCOLOR="\033[0m"
 #	Writes command usage to stdout
 ############################################################################
 function usage () {
-	echo "Usage: encoderSwap.sh [CONF FILE]... [OPTION]..."
-	echo "Options:"
-	echo "	--auto Swap RECEIVE_ADDRESS and RECEIVE_PORT for all OTTO channels on the appliance. When using"
-	echo "			the --auto option you do not need to supply a conf file."
-	echo " 			eg. encoderSwap.sh --auto"
+	echo -e "usage: encoderSwap.sh [CONF FILE] [OPTION]\n"
+	echo -e ${BOLD}"Description\n"${NOCOLOR}
+	echo -e "This script is used to quickly swap between encoders 1 & 2, and 3 & 4, as they are commonly referred to during ABC OTTO maintenance.\nIf a conf file is provided to the script it will change the encoders for that file ONLY and the optional arguments are not used.\nLikewise, if the optional arguments are used, eg. -13, a conf file is not to be provided.\n\nThe options are as follows:\n	-13	Switch to encoders 1 and 3\n	-24	Switch to encoders 2 and 4"
 	exit
 }
 
@@ -47,6 +46,10 @@ function swap () {
 	restart_fc ${confs[@]}
 }
 
+############################################################################# Check which encoders are currently active in the flowclient confs
+# Output:
+#	array
+############################################################################
 function check_active_encoder () {
 	active=($(grep -wB 1 "^RECEIVE_ADDRESS" $@ | grep Encoder | sed "s/.*#//"));
 	echo ${active[0]} and ${active[1]} are active >&2
@@ -95,16 +98,6 @@ case $@ in
 		usage
 	 	;;
 
-	--test)
-		find_conf 13
-		;;
-
-	--auto)
-		confs=$(for channel in $channels; do grep SEND_GROUP=$channel ./*.conf | sed "s/:.*//" | sed "s/.\///"; done)
-		swap $confs
-		restart_fc $confs
-		;;
-
 	-13)
 		find_conf 13
 		;;
@@ -115,7 +108,9 @@ case $@ in
 
 	$1)
 		swap $1
-		echo -e "\n$message $1"
 		;;
-	
+
+	*)
+		usage
+		;;	
 esac
