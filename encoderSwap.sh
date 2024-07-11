@@ -46,7 +46,8 @@ function swap () {
 	restart_fc ${confs[@]}
 }
 
-############################################################################# Check which encoders are currently active in the flowclient confs
+############################################################################# 
+#Check which encoders are currently active in the flowclient confs
 # Output:
 #	array
 ############################################################################
@@ -87,10 +88,10 @@ function find_conf () {
 #	*.conf || list
 ############################################################################
 function restart_fc () {
+	cd ~ltn
 	if [ $# -gt 0 ]; then
-#		cd ~ltn
 		for conf in $@; do
-			"sudo -u ltn ./scripts_current/fcctl ./scripts_current/$conf restart";
+			sudo -u ltn ./scripts_current/fcctl ./scripts_current/$conf restart;
 		done
 		echo -e "\n$message $@"
 	fi
