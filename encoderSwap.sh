@@ -2,9 +2,6 @@
 #
 # Quickly change encoders and restart flowclients during OTTO/D2 maintenance
 
-## Maintenance related channels
-channels="230.0.187.68 230.0.187.18 230.0.187.70 230.0.187.16 230.0.187.69 230.0.187.17"
-
 message="Encoders swapped and flowclient restarted for"
 RED="\033[1;31m"
 GREEN="\033[1;32m"
@@ -41,12 +38,12 @@ function swap () {
 			else
 				sed -i "s/\b$line\b/#$line/g" $conf
 			fi;
-		done; 
+		done;
 	done
 	restart_fc ${confs[@]}
 }
 
-############################################################################# 
+#############################################################################
 #Check which encoders are currently active in the flowclient confs
 # Output:
 #	array
@@ -121,5 +118,5 @@ case $@ in
 
 	*)
 		usage
-		;;	
+		;;
 esac
