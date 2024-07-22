@@ -1,5 +1,6 @@
 #! /bin/bash
 #
+# Version = 1.1
 # Quickly change encoders and restart flowclients during OTTO/D2 maintenance
 
 message="Encoders swapped and flowclient restarted for"
