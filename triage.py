@@ -22,6 +22,7 @@ class Triage:
         self.audio_deembedder_dir = "%sltn_audio_deembedder/" % (self.base_dir)
         self.schedule_agent_dir = "%sous/schedule_agent/" % (self.base_dir)
         self.flowclient_dir = "%sscripts_current/" % (self.base_dir)
+        self.spread_dir = "%sspread/" % (self.base_dir)
         
 
     def check_software_version (self):
@@ -36,26 +37,28 @@ class Triage:
                 split = i.split(": ")
                 x[split[0]] = split[1]
             return x
+
+        
+        def check_changelog(service, service_dir):
+            if os.system("ls %s &> /dev/null" % service_dir) == 0:
+                app_swv[service] = open(service_dir+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
         
 
         col_swv = format_version_file(os.popen(self.col_connect+"/usr/local/sbin/deploy_software.sh -V").read())
 
         app_swv = {}
+        check_changelog("encoder", self.encoder_dir)
+        check_changelog("flowclient", self.flowclient_dir)
+        check_changelog("spread", self.spread_dir)
 
         if os.system("ls %s &> /dev/null" % self.lted_decoder_dir) == 0:
                 app_swv["lted_decoder"] = open(self.lted_decoder_dir+"VERSION", mode="r").read().split(" ")[0]
-
-        if os.system("ls %s &> /dev/null" % self.encoder_dir) == 0:
-                app_swv["encoder"] = open(self.encoder_dir+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
 
         if os.system("ls %s &> /dev/null" % self.audio_deembedder_dir) == 0:
              app_swv["audio_deembedder"] = open(self.audio_deembedder_dir+"VERSION", mode="r").read().split("\n")[0]
 
         if os.system("ls %s &> /dev/null" % self.schedule_agent_dir) == 0:
              app_swv["schedule_agent"] = open(self.schedule_agent_dir+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
-
-        if os.system("ls %s &> /dev/null" % self.flowclient_dir) == 0:
-            app_swv["flowclient"] = open(self.flowclient_dir+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
 
 
         def compare_v():
