@@ -58,18 +58,19 @@ class Triage:
 
         app_swv = {}
         
-        match check_enabled_services():
-            case "lted_decoder":
-                app_swv["lted_decoder"] = open(self.services["lted_decoder"]+"VERSION", mode="r").read().split(" ")[0]
+        for item in check_enabled_services():
+            match item:
+                case "lted_decoder":
+                    app_swv["lted_decoder"] = open(self.services["lted_decoder"]+"VERSION", mode="r").read().split(" ")[0]
 
-            case "audio_deembedder":
-                app_swv["audio_deembedder"] = open(self.services["audio_deembedder"]+"VERSION", mode="r").read().split("\n")[0]
+                case "audio_deembedder":
+                    app_swv["audio_deembedder"] = open(self.services["audio_deembedder"]+"VERSION", mode="r").read().split("\n")[0]
 
-            case: "schedule_agent":
-                app_swv["schedule_agent"] = open(self.services["schedule_agent"]+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
+                case: "schedule_agent":
+                    app_swv["schedule_agent"] = open(self.services["schedule_agent"]+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
 
-            case: _:
-                check_changelog(_)
+                case: _:
+                    check_changelog(_)
 
 
         def compare_v():
