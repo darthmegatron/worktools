@@ -39,11 +39,6 @@ class Triage:
             return x
 
         
-        def check_changelog(service):
-            if os.system("ls %s &> /dev/null" % self.services[service]) == 0:
-                app_swv[service] = open(self.services[service]+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
-
-
         def check_enabled_services():
             os.chdir("/home/ltn/services")
             enabled_services = glob("service-*")
@@ -52,26 +47,30 @@ class Triage:
                 if itemy == "flow_clients":
                     itemy = "flowclient"
                 enabled_services[enabled_services.index(itemx)] = itemy
-            for service in check_enabled_services():
-            match service:
-                case "lted_decoder":
-                    app_swv["lted_decoder"] = open(self.services["lted_decoder"]+"VERSION", mode="r").read().split(" ")[0]
+            return enabled_services
 
-                case "audio_deembedder":
-                    app_swv["audio_deembedder"] = open(self.services["audio_deembedder"]+"VERSION", mode="r").read().split("\n")[0]
-
-                case: "schedule_agent":
-                    app_swv["schedule_agent"] = open(self.services["schedule_agent"]+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
-
-                case: _:
-                    check_changelog(_)
-      
+        
+        def check_changelog(service):
+            if os.system("ls %s &> /dev/null" % self.services[service]) == 0:
+                app_swv[service] = open(self.services[service]+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
+        
 
         col_swv = format_version_file(os.popen(self.col_connect+"/usr/local/sbin/deploy_software.sh -V").read())
 
         app_swv = {}
         
-        check_enabled_services()
+        for service in check_enabled_services():
+            if service == "lted_decoder":
+                app_swv[service] = open(self.services[service]+"VERSION", mode="r").read().split(" ")[0]
+
+            elif service == "audio_deembedder":
+                app_swv[service] = open(self.services[service]+"VERSION", mode="r").read().split("\n")[0]
+
+            elif service == "schedule_agent":
+                app_swv[service] = open(self.services[service]+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
+
+            else:
+                check_changelog(service)
 
 
         def compare_v():
