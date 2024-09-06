@@ -58,8 +58,8 @@ class Triage:
 
         app_swv = {}
         
-        for item in check_enabled_services():
-            match item:
+        for service in listx in check_enabled_services():
+            match service:
                 case "lted_decoder":
                     app_swv["lted_decoder"] = open(self.services["lted_decoder"]+"VERSION", mode="r").read().split(" ")[0]
 
