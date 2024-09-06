@@ -5,6 +5,7 @@ ___version___ = "0.1"
 
 import os
 from distutils.version import StrictVersion
+from glob import glob
 
 class Colors:
     red = "\033[38;5;9m"
@@ -17,8 +18,8 @@ class Triage:
     def __init__(self):
         self.col_connect = "ssh -p 3993 col-control.livetimenet.net "
         self.base_dir = "/home/ltn/" # Prod
-        self.services = {"lted_decoder":"lted_decoder", "spread":"spread", "flowclient":"scripts_current", "schedule_agent":"ous/schedule_agent", "encoder":"ltn_encoder"\
-            "audio_deembedder":"ltn_audio_deembedder", "lted_decoder":"lted_decoder"}
+        self.services = {"lted_decoder":"lted_decoder/", "spread":"spread/", "flowclient":"scripts_current/", "schedule_agent":"ous/schedule_agent/", "encoder":"ltn_encoder/",\
+            "audio_deembedder":"ltn_audio_deembedder/"}
 
         for service in self.services:
             self.services[service] = self.base_dir+self.services[service]
@@ -38,6 +39,16 @@ class Triage:
             return x
 
         
+        def check_enabled_services():
+            os.chdir("/home/ltn/services")
+            enabled_services = glob("service-*")
+            for item in enabled_services:
+                item = item.split("service-")[1].replace("-","_")
+                if item == "flow_clients":
+                    item = "flowclient"
+            return enabled_services
+
+        
         def check_changelog(service):
             if os.system("ls %s &> /dev/null" % self.services[service]) == 0:
                 app_swv[service] = open(self.services[service]+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
@@ -46,18 +57,19 @@ class Triage:
         col_swv = format_version_file(os.popen(self.col_connect+"/usr/local/sbin/deploy_software.sh -V").read())
 
         app_swv = {}
-        check_changelog("encoder")
-        check_changelog("flowclient")
-        check_changelog("spread")
-
-        if os.system("ls %s &> /dev/null" % self.services["lted_decoder"]) == 0:
+        
+        match check_enabled_services():
+            case "lted_decoder":
                 app_swv["lted_decoder"] = open(self.services["lted_decoder"]+"VERSION", mode="r").read().split(" ")[0]
 
-        if os.system("ls %s &> /dev/null" % self.services["audio_deembedder"]) == 0:
-             app_swv["audio_deembedder"] = open(self.services["audio_deembedder"]+"VERSION", mode="r").read().split("\n")[0]
+            case "audio_deembedder":
+                app_swv["audio_deembedder"] = open(self.services["audio_deembedder"]+"VERSION", mode="r").read().split("\n")[0]
 
-        if os.system("ls %s &> /dev/null" % self.services["schedule_agent"]) == 0:
-             app_swv["schedule_agent"] = open(self.services["schedule_agent"]+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
+            case: "schedule_agent":
+                app_swv["schedule_agent"] = open(self.services["schedule_agent"]+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
+
+            case: _:
+                check_changelog(_)
 
 
         def compare_v():
