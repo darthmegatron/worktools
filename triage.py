@@ -21,6 +21,7 @@ class Triage:
         self.encoder_dir = "%sltn_encoder/" % (self.base_dir)
         self.audio_deembedder_dir = "%sltn_audio_deembedder/" % (self.base_dir)
         self.schedule_agent_dir = "%sous/schedule_agent/" % (self.base_dir)
+        self.flowclient_dir = "%sscripts_current/" % (self.base_dir)
         
 
     def check_software_version (self):
@@ -52,6 +53,10 @@ class Triage:
 
         if os.system("ls %s &> /dev/null" % self.schedule_agent_dir) == 0:
              app_swv["schedule_agent"] = open(self.schedule_agent_dir+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
+
+        if os.system("ls %s &> /dev/null" % self.flowclient_dir) == 0:
+            app_swv["flowclient"] = open(self.flowclient_dir+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
+
 
         def compare_v():
             """Compare on appliance software versions with the most recent available on col-control"""
