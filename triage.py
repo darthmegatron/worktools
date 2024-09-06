@@ -39,26 +39,20 @@ class Triage:
             return x
 
         
-        def check_enabled_services():
-            os.chdir("/home/ltn/services")
-            enabled_services = glob("service-*")
-            for item in enabled_services:
-                item = item.split("service-")[1].replace("-","_")
-                if item == "flow_clients":
-                    item = "flowclient"
-            return enabled_services
-
-        
         def check_changelog(service):
             if os.system("ls %s &> /dev/null" % self.services[service]) == 0:
                 app_swv[service] = open(self.services[service]+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
-        
 
-        col_swv = format_version_file(os.popen(self.col_connect+"/usr/local/sbin/deploy_software.sh -V").read())
 
-        app_swv = {}
-        
-        for service in listx in check_enabled_services():
+        def check_enabled_services():
+            os.chdir("/home/ltn/services")
+            enabled_services = glob("service-*")
+            for itemx in enabled_services:
+                itemy = itemx.split("service-")[1].replace("-","_")
+                if itemy == "flow_clients":
+                    itemy = "flowclient"
+                enabled_services[enabled_services.index(itemx)] = itemy
+            for service in check_enabled_services():
             match service:
                 case "lted_decoder":
                     app_swv["lted_decoder"] = open(self.services["lted_decoder"]+"VERSION", mode="r").read().split(" ")[0]
@@ -71,6 +65,13 @@ class Triage:
 
                 case: _:
                     check_changelog(_)
+      
+
+        col_swv = format_version_file(os.popen(self.col_connect+"/usr/local/sbin/deploy_software.sh -V").read())
+
+        app_swv = {}
+        
+        check_enabled_services()
 
 
         def compare_v():
