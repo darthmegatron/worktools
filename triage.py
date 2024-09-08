@@ -19,13 +19,14 @@ class Triage:
         self.col_connect = "ssh -p 3993 col-control.livetimenet.net "
         self.base_dir = "/home/ltn/" # Prod
         self.services = {"lted_decoder":"lted_decoder/", "spread":"spread/", "flowclient":"scripts_current/", "schedule_agent":"ous/schedule_agent/", "encoder":"ltn_encoder/",\
-            "audio_deembedder":"ltn_audio_deembedder/"}
+            "audio_deembedder":"ltn_audio_deembedder/", "ltn_srt_connector":"srt_connector/", "ltn_thumbnailer":"ltn_thumbnailer/"}
 
         for service in self.services:
             self.services[service] = self.base_dir+self.services[service]
                         
 
     def check_software_version (self):
+        """Returns current software versions available on col-control."""
         print("Checking installed software versions...\n")
 
         def format_version_file(file):
@@ -40,17 +41,20 @@ class Triage:
 
         
         def check_enabled_services():
+            """Return enabled services running on the appliance."""
             os.chdir("/home/ltn/services")
             enabled_services = glob("service-*")
+            sub = {"flow_clients":"flowclient", "srt_connector":"ltn_srt_connector", "ltn_audio_deembedder":"audio_deembedder", "ltn_encoder":"encoder"}
             for itemx in enabled_services:
                 itemy = itemx.split("service-")[1].replace("-","_")
-                if itemy == "flow_clients":
-                    itemy = "flowclient"
+                if itemy in sub:
+                    itemy = sub[itemy]
                 enabled_services[enabled_services.index(itemx)] = itemy
             return enabled_services
 
         
         def check_changelog(service):
+            """Isolate version number from software packages with a Changelog file."""
             if os.system("ls %s &> /dev/null" % self.services[service]) == 0:
                 app_swv[service] = open(self.services[service]+"CHANGELOG.md", mode="r").read().split("##")[:10][1][2:].split("]")[0]
         
@@ -68,6 +72,9 @@ class Triage:
 
             elif service == "schedule_agent":
                 app_swv[service] = open(self.services[service]+"schedule_agent.py", mode="r").read().split("\n")[2].split("= ")[1][1:-1]
+            
+            elif service == "ltn_srt_connector":
+                pass
 
             else:
                 check_changelog(service)
@@ -75,7 +82,6 @@ class Triage:
 
         def compare_v():
             """Compare on appliance software versions with the most recent available on col-control"""
-
             print("")
             for swv in app_swv:
                 if StrictVersion(app_swv[swv]) == StrictVersion(col_swv[swv]):
