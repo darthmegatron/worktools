@@ -1,4 +1,5 @@
 #! /bin/python3
+# CRUDE ROUGH DRAFT
 
 import os
 from sys import argv
@@ -26,11 +27,14 @@ if "-d" in argv:
 def read_csv() -> list:
     with open(file, "r") as f:
         content = f.read()
-
     return content.split("\n")[1:]
 
 
 def create_srt_conf(data:list):
+    # This function needs some TLC. At the time of writing this for a specific project I just manually swapped 
+    # the fields that need to be replaced in the template.replace functions. I'll try to work on making this more of a 
+    # multi-use script for static srt confs
+    
     for line in data:
         line = line.split(",")
 
