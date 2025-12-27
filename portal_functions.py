@@ -3,19 +3,33 @@ import json
 import os
 from urllib.parse import urljoin
 
-BASEURL = "https://transport-test.api.ltnglobal.com/v1/"
+BASEURL = "https://transport.api.ltnglobal.com/v1/"
 
 
-class Leaf:
+class Channel:
     def __init__(self, name, session):
         self.name = name
         self.session = session
-        self.url = urljoin(BASEURL, "leaves")
+        self.url = urljoin(BASEURL, "channels")
         self.search_filter = {
-            "filter": f'leaf_id=\'{self.name}\'',
+            "filter": f'channel_id=\'{self.name}\'',
             "page_size": 999999
         }
-        self.info = self.session.get(self.url, params=self.search_filter).json()["leaves"][0]
+        self.info = self.session.get(self.url, params=self.search_filter).json()["channels"][0]
+
+
+class Leaf:
+    def __init__(self, name, session, filter_by):
+        self.name = name
+        self.session = session
+        self.filter_by = filter_by
+        self.url = urljoin(BASEURL, "leaves")
+        self.search_filter = {
+            "filter": f'{self.filter_by}=\'{self.name}\'',
+            "page_size": 999999
+        }
+        self.info = self.session.get(self.url,\
+            params=self.search_filter).json()["leaves"]
 
     def generate_decoderx_file(self):
         local_path = f'/home/rcol/Desktop/{self.name}'
@@ -33,12 +47,12 @@ class Endpoint:
     def __init__(self, name, session):
         self.name = name
         self.session = session
-        self.url = urljoin(BASEURL, "endpoint")
+        self.url = urljoin(BASEURL, "endpoints")
         self.search_filter = {
             "filter": f'endpoint_id=\'{self.name}\'',
             "page_size": 999999
         }
-        self.info = self.session.get(self.url, params=self.search_filter).json()["endpoint"][0]
+        self.info = self.session.get(self.url, params=self.search_filter).json()#["endpoint"][0]
     
     def get_endpoint(self):
         pass
@@ -57,13 +71,15 @@ class Overlay:
 
     
 class Flowclient:
-    def __init__(self, name, session):
+    def __init__(self, name, session, filter_by):
         self.name = name
         self.session = session
-        ## Need to verify the api endpoint and search filter for flowclients
-        #self.info = self.session.get(self.url, params=self.search_filter).json()["leaves"][0]
-        #self.search_filter = {
-        #    "filter": f'leaf_id=\'{self.name}\'',
-        #    "page_size": 999999
-        #}
-
+        self.filter_by = filter_by
+        self.url = urljoin(BASEURL, "flowclients")
+        self.search_filter = {
+            "filter": f'{self.filter_by}=\'{self.name}\'',
+            "page_size": 999999
+        }
+        self.info = self.session.get(self.url,\
+            params=self.search_filter).json()#["leaves"]
+            
